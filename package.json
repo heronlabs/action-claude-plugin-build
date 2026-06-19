@@ -1,0 +1,16 @@
+{
+  "name": "action-claude-plugin-build",
+  "version": "1.0.0",
+  "description": "GitHub Action to sync a Claude Code plugin version into plugin.json + marketplace.json, then commit and push",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heronlabs/action-claude-plugin-build.git"
+  },
+  "author": "Heron Labs",
+  "license": "MIT",
+  "dependencies": {
+    "gts": "^7.0.0"
+  },
+  "prettier": "gts/.prettierrc.json"
+}

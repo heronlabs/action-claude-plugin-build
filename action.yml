@@ -1,0 +1,42 @@
+name: action-claude-plugin-build
+
+author: Heron Labs
+
+description: Sync a Claude Code plugin's version into plugin.json and marketplace.json, then commit and push.
+
+branding:
+  icon: package
+  color: purple
+
+inputs:
+  version:
+    description: The plugin version to write (X.Y.Z).
+    required: true
+  plugin-dir:
+    description: Directory containing .claude-plugin/ (repo root by default; set for monorepo sub-directories).
+    required: false
+    default: '.'
+
+outputs:
+  version:
+    description: The synced plugin version.
+    value: ${{ steps.sync.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: 'Config git'
+      shell: bash
+      working-directory: ${{ inputs.plugin-dir }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: 'Sync plugin version'
+      id: sync
+      shell: bash
+      working-directory: ${{ inputs.plugin-dir }}
+      run: bash ${{ github.action_path }}/core/sync-plugin-version.sh
+      env:
+        VERSION: ${{ inputs.version }}
+        REF_NAME: ${{ github.ref_name }}
