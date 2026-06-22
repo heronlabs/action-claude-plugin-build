@@ -1,6 +1,6 @@
 {
   "name": "action-claude-plugin-build",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "GitHub Action to sync a Claude Code plugin version into plugin.json + marketplace.json, then commit and push",
   "private": true,
   "repository": {
