@@ -1,6 +1,6 @@
 # Claude Plugin Sync Action
 
-[![CI](https://github.com/heronlabs/action-claude-plugin-build/actions/workflows/ci.yml/badge.svg)](https://github.com/heronlabs/action-claude-plugin-build/actions/workflows/ci.yml)
+[![CI](https://github.com/heronlabs/action-claude-plugin-build/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/heronlabs/action-claude-plugin-build/actions/workflows/continuous-integration.yml)
 
 > Write a version into a Claude Code plugin's `plugin.json` and matching `marketplace.json` entry, then commit and push.
 
