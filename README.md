@@ -4,34 +4,58 @@
 
 > Write a version into a Claude Code plugin's `plugin.json` and matching `marketplace.json` entry, then commit and push.
 
-Claude Code plugins ship from a git repo's `.claude-plugin/marketplace.json` rather than a central registry, and the `version` there must match the plugin's `plugin.json`. This action receives a version (`X.Y.Z`) — it does not compute one — and keeps both files in lockstep. Version bumps, tags, and releases are handled by [`googleapis/release-please-action`](https://github.com/googleapis/release-please-action) in the CD workflow.
+Claude Code plugins ship from a git repo's `.claude-plugin/marketplace.json` rather than a central registry, and the `version` there must match the plugin's `plugin.json`. This action receives a version (`X.Y.Z`) — it does not compute one — and keeps both files in lockstep. Pair it with [`action-tag-release-build`](https://github.com/heronlabs/action-tag-release-build) when you also need a version bump, tag, and release.
 
 ## Usage
 
-This action syncs a version into the plugin files. Versioning and releases are managed by [`googleapis/release-please-action`](https://github.com/googleapis/release-please-action) in the CD workflow — it infers the next version from conventional commits, maintains a release PR, and creates the tag and GitHub Release on merge.
+Pair with [`action-tag-release-build`](https://github.com/heronlabs/action-tag-release-build) (ATRB) so the plugin JSONs and `package.json` always agree: derive the next version once (read-only), sync the plugin files to it, then let ATRB perform the single real bump, tag, and release. Run this action first so ATRB's tag commit is a child of the sync commit.
 
 ```yaml
-name: '[ CD ] | Release Plugin'
+name: '[ CD ] | Publish Plugin'
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      spec:
+        description: The SEMVER specification.
+        required: true
+        type: choice
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  release-please:
+  publish:
     runs-on: ubuntu-24.04
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - uses: googleapis/release-please-action@v5
-        id: release
+      - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: simple
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+
+      - id: next
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          NEXT=$(npx --yes semver -i "${{ inputs.spec }}" "$CURRENT")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+
+      - uses: heronlabs/action-claude-plugin-build@v2
+        with:
+          version: ${{ steps.next.outputs.version }}
+
+      - uses: heronlabs/action-tag-release-build@v4
+        with:
+          github-token: ${{ secrets.PAT }}
+          spec: ${{ inputs.spec }}
 ```
 
 ### Standalone (version from input)
